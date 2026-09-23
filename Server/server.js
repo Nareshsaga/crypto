@@ -244,6 +244,12 @@ const ML_COINS = [
 
 const training = new Set();
 
+// On-demand coins: ids/tickers/names must pass these before touching the
+// filesystem or argv (path-traversal + argument-injection guard).
+const COIN_ID_RE = /^[a-z0-9-]{2,40}$/;
+const TICKER_RE = /^[A-Z0-9]{1,12}-USD$/;
+const COIN_NAME_RE = /^[A-Za-z0-9 .&'-]{1,40}$/;
+
 function readMlData(file) {
 	const target = path.join(ML_DATA_DIR, file);
 	if (!fs.existsSync(target)) {
@@ -266,19 +272,20 @@ app.get("/ml", (req, res) => {
 app.get("/ml/:coin", (req, res) => {
 	const coin = req.params.coin;
 
-	// Allowlist before touching the filesystem: no path traversal, no surprise files.
-	if (!ML_COINS.includes(coin)) {
-		return res.status(404).json({
-			error: `Unknown coin "${coin}"`,
-			available: ML_COINS,
-		});
+	// Strict id check before touching the filesystem: no path traversal, no
+	// surprise files. Any coin with a trained payload is readable — including
+	// ones trained on demand beyond the default set.
+	if (!COIN_ID_RE.test(coin)) {
+		return res.status(400).json({ error: "Invalid coin id" });
 	}
 
 	const payload = readMlData(`${coin}.json`);
 	if (!payload) {
 		return res.status(404).json({
 			error: `No trained model for "${coin}"`,
-			hint: "Run `python ml/train.py` from the repository root.",
+			hint: ML_COINS.includes(coin)
+				? "Run `python ml/train.py` from the repository root."
+				: `Train it: POST /ml/${coin}/train with { "ticker": "SYM-USD", "name": "Name" }`,
 		});
 	}
 	return res.json(payload);
@@ -316,11 +323,26 @@ function trainRateLimiter(req, res, next) {
 app.post("/ml/:coin/train", passport.authenticate("jwt", { session: false }), trainRateLimiter, (req, res) => {
 	const coin = req.params.coin;
 
+	if (!COIN_ID_RE.test(coin)) {
+		return res.status(400).json({ error: "Invalid coin id" });
+	}
+
+	// Default coins train from the pipeline's built-in config; any other coin
+	// must carry a validated Yahoo ticker (+ display name), passed through as
+	// `python ml/train.py <coin> --ticker … --name …` (validated again there).
+	const args = [ML_SCRIPT, coin];
 	if (!ML_COINS.includes(coin)) {
-		return res.status(404).json({
-			error: `Unknown coin "${coin}"`,
-			available: ML_COINS,
-		});
+		const ticker = typeof req.body?.ticker === "string" ? req.body.ticker : "";
+		const name = typeof req.body?.name === "string" ? req.body.name : "";
+		if (!TICKER_RE.test(ticker)) {
+			return res.status(400).json({
+				error: 'A valid Yahoo ticker is required to train a new coin, e.g. { "ticker": "DOT-USD", "name": "Polkadot" }',
+			});
+		}
+		if (name && !COIN_NAME_RE.test(name)) {
+			return res.status(400).json({ error: "Invalid coin name" });
+		}
+		args.push("--ticker", ticker, "--name", name || coin);
 	}
 	if (training.has(coin)) {
 		return res.status(409).json({ error: `${coin} is already training` });
@@ -328,7 +350,7 @@ app.post("/ml/:coin/train", passport.authenticate("jwt", { session: false }), tr
 
 	training.add(coin);
 	const python = process.platform === "win32" ? "python" : "python3";
-	const child = spawn(python, [ML_SCRIPT, coin], {
+	const child = spawn(python, args, {
 		cwd: path.join(__dirname, ".."),
 		windowsHide: true,
 	});

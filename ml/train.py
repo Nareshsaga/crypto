@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import math
 import platform
+import re
 import sys
 import time
 import urllib.error
@@ -58,6 +59,13 @@ COINS = {
     "cardano": ("ADA-USD", "Cardano", "ADA"),
     "dogecoin": ("DOGE-USD", "Dogecoin", "DOGE"),
 }
+
+# Coins beyond COINS can be trained on demand (`--ticker DOT-USD --name …`);
+# ids/tickers/names are validated here too, mirroring the API's checks so a
+# bad value can never reach the filesystem or the Yahoo URL.
+COIN_ID_RE = re.compile(r"^[a-z0-9-]{2,40}$")
+TICKER_RE = re.compile(r"^[A-Z0-9]{1,12}-USD$")
+COIN_NAME_RE = re.compile(r"^[A-Za-z0-9 .&'-]{1,40}$")
 
 XGB_PARAMS = {
     "n_estimators": 700,
@@ -811,19 +819,60 @@ def write_index(payloads: list[dict]) -> None:
     print(f"  wrote {target.relative_to(ROOT)} ({len(index['coins'])} coins)")
 
 
+def _parse_meta(args: list[str]) -> tuple[list[str], dict[str, str]]:
+    """Split `--ticker X --name Y` out of the positional coin list."""
+    meta: dict[str, str] = {}
+    positional: list[str] = []
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        if arg in ("--ticker", "--name") and index + 1 < len(args):
+            meta[arg[2:]] = args[index + 1]
+            index += 2
+        else:
+            positional.append(arg)
+            index += 1
+    return positional, meta
+
+
 def main(argv: list[str]) -> int:
-    requested = argv[1:] or list(COINS)
+    requested, meta = _parse_meta(argv[1:])
 
     if requested == ["--reindex"]:
         print("Rebuilding index from the coin files on disk ...", flush=True)
         write_index([])
         return 0
 
+    requested = requested or list(COINS)
+
     unknown = [coin for coin in requested if coin not in COINS]
     if unknown:
-        print(f"Unknown coin(s): {', '.join(unknown)}", file=sys.stderr)
-        print(f"Available: {', '.join(COINS)}", file=sys.stderr)
-        return 2
+        ticker = meta.get("ticker", "")
+        name = meta.get("name", "")
+        if len(unknown) > 1 or not TICKER_RE.match(ticker):
+            print(f"Unknown coin(s): {', '.join(unknown)}", file=sys.stderr)
+            print(f"Available: {', '.join(COINS)}", file=sys.stderr)
+            print(
+                'Train any other coin with: --ticker TICK-USD --name "Name"',
+                file=sys.stderr,
+            )
+            return 2
+        if not COIN_ID_RE.match(unknown[0]):
+            print(f"Invalid coin id: {unknown[0]}", file=sys.stderr)
+            return 2
+        if name and not COIN_NAME_RE.match(name):
+            print(f"Invalid coin name: {name}", file=sys.stderr)
+            return 2
+        coin_id = unknown[0]
+        COINS[coin_id] = (
+            ticker,
+            name or coin_id.replace("-", " ").title(),
+            ticker.split("-")[0],
+        )
+        print(
+            f"[{coin_id}] new coin registered from --ticker {ticker}",
+            flush=True,
+        )
 
     entries: list[dict] = []
     failures: list[str] = []

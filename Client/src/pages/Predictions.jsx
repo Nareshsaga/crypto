@@ -14,7 +14,7 @@ import ForecastChart from "../components/ml/ForecastChart";
 import Projection from "../components/ml/Projection";
 
 import { SURFACE, longDate, integer, pct, fix, MODEL_META } from "../constants/ml";
-import { trainCoin, useMLIndex, useMLModel } from "../hooks/useML";
+import { trainCoin, useCoinSearch, useMLIndex, useMLModel } from "../hooks/useML";
 import { useAuth } from "../context/AuthContext";
 
 const Skeleton = ({ className = "" }) => (
@@ -48,6 +48,84 @@ const CoinPicker = ({ coins, value, onChange }) => (
 				</button>
 			);
 		})}
+	</div>
+);
+
+const CoinSearch = ({ query, onQueryChange, results, searching, onPick, trained }) => (
+	<div className="relative w-72 max-w-full">
+		<input
+			type="search"
+			value={query}
+			onChange={(event) => onQueryChange(event.target.value)}
+			placeholder="Search any coin (e.g. polkadot)"
+			aria-label="Search any coin to predict"
+			className="control w-full border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-50 dark:placeholder:text-gray-500"
+		/>
+		{searching && (
+			<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Searching…</p>
+		)}
+		{!searching && query.trim().length >= 2 && results.length === 0 && (
+			<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">No matches</p>
+		)}
+		{results.length > 0 && (
+			<ul className="absolute z-30 mt-1 w-full overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+				{results.map((entry) => (
+					<li key={entry.id}>
+						<button
+							type="button"
+							onClick={() => onPick(entry)}
+							className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700/60"
+						>
+							<span>{entry.name}</span>
+							<span className="font-mono text-xs text-gray-500 dark:text-gray-400">
+								{entry.symbol.toUpperCase()}
+								{trained.has(entry.id) ? " · trained" : ""}
+							</span>
+						</button>
+					</li>
+				))}
+			</ul>
+		)}
+	</div>
+);
+
+const PendingStrip = ({ pending, busy, isAuthenticated, onTrain, onDismiss }) => (
+	<div
+		role="status"
+		className="flex w-72 max-w-full flex-wrap items-center justify-between gap-2 border border-blue-200 bg-blue-50 px-3 py-2 text-xs dark:border-blue-500/30 dark:bg-blue-500/10"
+	>
+		<span className="font-medium text-blue-900 dark:text-blue-200">
+			{pending.name} ({pending.symbol}) — not trained yet
+		</span>
+		<span className="flex items-center gap-2">
+			{isAuthenticated ? (
+				<button
+					type="button"
+					onClick={onTrain}
+					disabled={busy}
+					className="control bg-blue-600 px-3 py-1.5 font-medium text-white hover:bg-blue-700 disabled:cursor-wait disabled:opacity-70"
+				>
+					{busy ? "Training…" : `Train ${pending.name} — about 25 s`}
+				</button>
+			) : (
+				<button
+					type="button"
+					disabled
+					title="Log in to train new coins"
+					className="control cursor-not-allowed bg-gray-200 px-3 py-1.5 font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+				>
+					Log in to train
+				</button>
+			)}
+			<button
+				type="button"
+				onClick={onDismiss}
+				aria-label="Dismiss untrained coin"
+				className="px-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+			>
+				×
+			</button>
+		</span>
 	</div>
 );
 
@@ -86,10 +164,13 @@ const Callout = ({ title, children, bare = false }) => (
 
 const Predictions = ({ portfolio }) => {
 	const reduce = useReducedMotion();
-	const { data: index, loading, error } = useMLIndex();
+	const { data: index, loading, error, reload: reloadIndex } = useMLIndex();
 	const { isAuthenticated } = useAuth();
 	const [coin, setCoin] = useState(null);
 	const [busy, setBusy] = useState(false);
+	const [query, setQuery] = useState("");
+	const [pending, setPending] = useState(null);
+	const { results, searching } = useCoinSearch(query);
 
 	useEffect(() => {
 		if (!coin && index?.coins?.length) setCoin(index.coins[0].coin);
@@ -103,6 +184,10 @@ const Predictions = ({ portfolio }) => {
 	} = useMLModel(coin);
 
 	const coins = useMemo(() => index?.coins || [], [index]);
+	const trainedIds = useMemo(
+		() => new Set(coins.map((entry) => entry.coin)),
+		[coins],
+	);
 
 	const handleTrain = async () => {
 		if (!coin || busy || !isAuthenticated) return;
@@ -110,6 +195,7 @@ const Predictions = ({ portfolio }) => {
 		try {
 			await trainCoin(coin);
 			await reload();
+			reloadIndex();
 			toast.success(`Retrained ${coin} on 5 years of daily data.`);
 		} catch (err) {
 			toast.error(err.message || "Training failed.");
@@ -117,6 +203,60 @@ const Predictions = ({ portfolio }) => {
 			setBusy(false);
 		}
 	};
+
+	const handlePick = (entry) => {
+		setQuery("");
+		if (trainedIds.has(entry.id)) {
+			setPending(null);
+			setCoin(entry.id);
+			return;
+		}
+		setPending({
+			id: entry.id,
+			name: entry.name,
+			symbol: entry.symbol.toUpperCase(),
+		});
+	};
+
+	const handleTrainNew = async () => {
+		if (!pending || busy || !isAuthenticated) return;
+		const { id, name, symbol } = pending;
+		setBusy(true);
+		try {
+			await trainCoin(id, { ticker: `${symbol}-USD`, name });
+			setPending(null);
+			setCoin(id);
+			reloadIndex();
+			toast.success(`Trained ${name} on 5 years of daily data.`);
+		} catch (err) {
+			toast.error(err.message || "Training failed.");
+		} finally {
+			setBusy(false);
+		}
+	};
+
+	// Shared between the main header and the no-models empty state.
+	const searchControls = (
+		<>
+			<CoinSearch
+				query={query}
+				onQueryChange={setQuery}
+				results={results}
+				searching={searching}
+				onPick={handlePick}
+				trained={trainedIds}
+			/>
+			{pending && (
+				<PendingStrip
+					pending={pending}
+					busy={busy}
+					isAuthenticated={isAuthenticated}
+					onTrain={handleTrainNew}
+					onDismiss={() => setPending(null)}
+				/>
+			)}
+		</>
+	);
 
 	/* ---------- empty state ---------- */
 	if (!loading && (!index || !coins.length)) {
@@ -131,6 +271,9 @@ const Predictions = ({ portfolio }) => {
 							"The training pipeline has not written any results."}{" "}
 						Train every configured coin from the repository root:
 					</p>
+					<div className="mx-auto mt-6 flex max-w-md flex-col items-center gap-3">
+						{searchControls}
+					</div>
 					<code className="control mt-5 inline-block bg-gray-900 px-4 py-2.5 font-mono text-sm text-gray-100 dark:bg-gray-100 dark:text-gray-900">
 						python ml/train.py
 					</code>
@@ -179,6 +322,7 @@ const Predictions = ({ portfolio }) => {
 
 					<div className="flex flex-col items-end gap-3">
 						<CoinPicker coins={coins} value={coin} onChange={setCoin} />
+						{searchControls}
 						{isAuthenticated ? (
 							<button
 								onClick={handleTrain}

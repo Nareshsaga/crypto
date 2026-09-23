@@ -7,8 +7,8 @@ import { test, expect, applyAuth, API } from '../helpers/auth';
  * rate limit, and gates the public /predictions retrain button on session.
  *
  * Safety: every API probe uses an unknown coin, so the request dies at the
- * auth gate (401/429) or the coin allowlist (404) — before any spawn. The
- * signed-in UI test asserts the button is enabled but never clicks it.
+ * auth gate (401/400/429) before any spawn. The signed-in UI test asserts
+ * the button is enabled but never clicks it.
  */
 
 const mlIndex = {
@@ -45,23 +45,23 @@ test.describe('ML training gate (BUG-06)', () => {
     expect(res.status()).toBe(401);
   });
 
-  test('valid session passes the gate and is stopped by the coin allowlist', async ({
+  test('valid session passes the gate; a new coin without a ticker is rejected', async ({
     request,
     seededUser,
   }) => {
     const res = await request.post(`${API}/ml/notacoin/train`, {
       headers: { Authorization: `Bearer ${seededUser.token}` },
     });
-    expect(res.status()).toBe(404); // not 401 → auth admitted; unknown coin → no spawn
+    expect(res.status()).toBe(400); // not 401 → auth admitted; validation stops pre-spawn
     const body = await res.json();
-    expect(body.error).toContain('Unknown coin');
+    expect(body.error).toMatch(/ticker/i);
   });
 
   test('one user is rate-limited after the training budget', async ({ request, seededUser }) => {
     const headers = { Authorization: `Bearer ${seededUser.token}` };
     let status = 0;
-    // 13 attempts against the unknown coin: 12 pass the gate (404 from the
-    // allowlist), the 13th must trip the budget with 429 + Retry-After.
+    // 13 attempts against an untrained coin: 12 pass the gate (400 from
+    // validation), the 13th must trip the budget with 429 + Retry-After.
     for (let attempt = 0; attempt < 13 && status !== 429; attempt += 1) {
       const res = await request.post(`${API}/ml/notacoin/train`, { headers });
       status = res.status();

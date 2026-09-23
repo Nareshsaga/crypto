@@ -19,13 +19,14 @@
 | UI functional (`auth.spec.ts`, `dashboard.spec.ts`) | 14 | 14 | 0 |
 | Defect regression (`dashboard-defects.spec.ts`, DEF-01…04) | 4 | 4 | 0 |
 | ML training gate (`ml-training.spec.ts`, BUG-06) | 6 | 6 | 0 |
-| **Total** | **42** | **42** | **0** |
+| On-demand coin predictions (`ml-predict-coin.spec.ts`) | 5 | 5 | 0 |
+| **Total** | **47** | **47** | **0** |
 
-Final run: `24 passed in 18.7 s` (6 workers, **exit code 0**) — following the fix rounds (§2): all four DEF tests, authored to fail against the original build as defect evidence, plus the six BUG-06 gate tests, now **pass** and stand as permanent regression tests.
+Final run: `29 passed in 27.5 s` (6 workers, **exit code 0**) — the DEF regressions (authored to fail against the original build), the six BUG-06 gate tests, and the five on-demand-coin tests all **pass** and stand as permanent regression tests.
 
 ```powershell
 cd qa-tests
-npm test                          # → 24/24 green (auto-starts Vite/Express if down)
+npm test                          # → 29/29 green (auto-starts Vite/Express if down)
 npx playwright test e2e/tests/dashboard-defects.spec.ts   # → 4/4 DEF regressions
 ```
 
@@ -213,6 +214,9 @@ touchpoints above (`Predictions.jsx` button gate, `useML.js` transport).
 | S6 | BUG-06 | Owner go-ahead (“continue the changes”) → fix implemented: JWT gate + per-user rate limit on the train route; `trainCoin` on the shared axios instance; `/predictions` retrain button session-gated; 6 regression tests added. |
 | S6 | BUG (integration) | User's parallel commits interleaved with the fix round — `a1f284a` swept the suite + first fixes, `0690d85` fixed single-coin retraining wiping the index, `a7bcedb` added the Projection panel. Verified the `Predictions.jsx` gate survived intact inside `a7bcedb` (all 6 markers present). |
 | S6 | NOTE | Express restarted to load the gate (passport now answers `Unauthorized` where the old code returned 404). Final: **24/24 green in 18.7 s, exit code 0** → cumulative **42/42**. |
+| S7 | FEATURE | Owner requested predictions for any particular coin (the picker was fixed to the trained six). Shipped end to end: `ml/train.py` accepts `--ticker SYM-USD --name …` for one new coin (regex-validated, mirrored in `server.js`); `POST /ml/:coin/train` keeps the BUG-06 gate and passes validated meta through argv; `GET /ml/:coin` serves any trained coin behind an id-regex guard (no path traversal). |
+| S7 | NOTE | UI: debounced CoinGecko search on `/predictions` → picking a trained coin switches instantly; an untrained pick shows the pending strip (**Train … — about 25 s**, session-gated to **Log in to train** for anonymous visitors) → on success the index reloads and the new chip auto-selects. `useMLIndex` gained `reload()`. |
+| S7 | NOTE | Checks: `py_compile` ✓, `node --check` ✓, `tsc --noEmit` ✓, `eslint` 0 problems; Express restarted by QA to load the new routes; final run **29/29 green in 27.5 s, exit 0** → cumulative **47/47**. |
 
 ---
 
@@ -223,7 +227,7 @@ touchpoints above (`Predictions.jsx` button gate, `useML.js` transport).
 3. **Mobile viewport pass** — desktop-only automation; a 390 px charter should cover the hamburger → `Menu` flow (`mobile-testing` / exploratory charter).
 4. **`/watchlist` & `/signup` UI** — guarded/round-trip covered indirectly; no dedicated page specs yet.
 5. **`/predictions` + ML endpoints** — was out of charter; BUG-06 now closed with `ml-training.spec.ts` (6 tests), but the page still lacks a full functional spec. User-side `_verify.cjs` scripts exist in `qa-tests/` (external, untouched, not in `testDir`).
-6. **Performance/load** — training is now authed + rate-limited (BUG-06); no load profile yet. **Open feature request:** arbitrary-coin predictions — the picker is limited to the 6 configured coins (`ml/train.py` `COINS` + the `ML_COINS` allowlist); needs pipeline + server + UI + tests.
+6. **Performance/load** — training is now authed + rate-limited (BUG-06); no load profile yet. **Resolved (S7):** arbitrary-coin predictions shipped — validated `--ticker/--name` pass-through end to end (`ml/train.py` → `server.js` → search-and-train UI), locked by `ml-predict-coin.spec.ts` (3 API validation + 2 UI flow tests).
 7. **Session-expiry UX matrix** — beyond DEF-01: mid-session expiry, concurrent logout in two tabs.
 
 ---
