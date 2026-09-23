@@ -63,20 +63,20 @@ const PortfolioTable = ({
                     <thead className="border-b-2 border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                         <tr>
                             {[
-                                "Rank",
-                                "Name",
-                                "Price",
-                                "Total Investment",
-                                "Coins Purchased",
-                                "Current Value",
-                                "Profit/Loss",
-                                "",
+                                { label: "Rank", align: "text-center" },
+                                { label: "Name", align: "text-left" },
+                                { label: "Price", align: "text-right" },
+                                { label: "Total Investment", align: "text-right" },
+                                { label: "Coins Purchased", align: "text-right" },
+                                { label: "Current Value", align: "text-right" },
+                                { label: "Profit/Loss", align: "text-right" },
+                                { label: "", align: "text-left" },
                             ].map((header) => (
                                 <th
-                                    key={header}
-                                    className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-200 tracking-wider uppercase"
+                                    key={header.label}
+                                    className={`px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-200 tracking-wider uppercase ${header.align}`}
                                 >
-                                    {header}
+                                    {header.label}
                                 </th>
                             ))}
                         </tr>

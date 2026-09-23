@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "motion/react";
 import { ToastContainer, toast } from "react-toastify";
@@ -7,11 +7,15 @@ import "react-toastify/dist/ReactToastify.css";
 import Header from "./components/Header";
 import Menu from "./components/Menu";
 import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
 import Watchlist from "./pages/Watchlist";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import Predictions from "./pages/Predictions";
+
+// Dashboard pulls in jsPDF and the chart library, and Predictions pulls in the
+// chart library. Home is the landing page and needs neither, so both load on
+// demand instead of being parsed before first paint.
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Predictions = lazy(() => import("./pages/Predictions"));
 
 import { useAuth } from "./context/AuthContext";
 
@@ -19,6 +23,18 @@ import {
     portfolioAPI,
     watchlistAPI,
 } from "./services/api";
+
+function RouteFallback() {
+    return (
+        <div className="flex min-h-[60vh] items-center justify-center">
+            <span
+                role="status"
+                aria-label="Loading"
+                className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"
+            />
+        </div>
+    );
+}
 
 function App() {
     const { isAuthenticated, logout: authLogout, loading: authLoading } = useAuth();
@@ -161,6 +177,7 @@ function App() {
                 {menu && <Menu handleLogout={handleLogout} />}
             </AnimatePresence>
 
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
 
                 {/* HOME */}
@@ -246,6 +263,7 @@ function App() {
                 <Route path="/predictions" element={<Predictions />} />
 
             </Routes>
+            </Suspense>
         </>
     );
 }

@@ -24,7 +24,7 @@ const PortfolioCoinRow = ({
 
 	return (
 		<tr className="border-b border-gray-200 hover:bg-gray-50 transition-all duration-150 dark:hover:bg-gray-900 dark:border-gray-700">
-			<td className="px-6 py-4 text-center font-medium text-gray-700 dark:text-white">
+			<td className="px-6 py-4 text-center tabular-nums font-medium text-gray-700 dark:text-white">
 				{coin.market_cap_rank}
 			</td>
 			<td className="px-6 py-4">
@@ -44,19 +44,19 @@ const PortfolioCoinRow = ({
 					</div>
 				</div>
 			</td>
-			<td className="px-6 py-4 font-medium">
+			<td className="px-6 py-4 text-right tabular-nums font-medium">
 				{formatCurrency(coin.current_price * currency[1], 6)}
 			</td>
-			<td className="px-6 py-4 font-medium text-gray-800 dark:text-white">
+			<td className="px-6 py-4 text-right tabular-nums font-medium text-gray-800 dark:text-white">
 				{formatCurrency(
 					(coinData.totalInvestment * currency[1]).toFixed(2),
 					6
 				)}
 			</td>
-			<td className="px-6 py-4 font-medium text-gray-800 dark:text-white">
+			<td className="px-6 py-4 text-right tabular-nums font-medium text-gray-800 dark:text-white">
 				{coinData.coins.toLocaleString()}
 			</td>
-			<td className={`px-6 py-4 font-medium`}>
+			<td className={`px-6 py-4 text-right tabular-nums font-medium`}>
 				{formatCurrency(
 					(coin.current_price * coinData.coins * currency[1]).toFixed(
 						2
@@ -65,7 +65,7 @@ const PortfolioCoinRow = ({
 				)}
 			</td>
 
-			<td className={`px-6 py-4 font-medium ${color}`}>
+			<td className={`px-6 py-4 text-right tabular-nums font-medium ${color}`}>
 				{profit.toFixed(2).toLocaleString()}%
 			</td>
 			<td className="px-6 py-4">

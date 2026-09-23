@@ -14,7 +14,7 @@ const CoinRow = ({ coin, isStarred, toggleWatchlist, toggleForm }) => {
         <tr className="border-b border-gray-200 hover:bg-gray-50 transition-all duration-150 dark:hover:bg-gray-800 dark:border-gray-700">
 
             {/* Rank */}
-            <td className="px-6 py-4 text-center font-medium text-gray-700 dark:text-white">
+            <td className="px-6 py-4 text-center tabular-nums font-medium text-gray-700 dark:text-white">
                 {coin.market_cap_rank}
             </td>
 
@@ -40,7 +40,7 @@ const CoinRow = ({ coin, isStarred, toggleWatchlist, toggleForm }) => {
             </td>
 
             {/* Current Price */}
-            <td className="px-6 py-4 font-medium">
+            <td className="px-6 py-4 text-right tabular-nums font-medium">
                 {coin.current_price != null
                     ? formatCurrency(
                           coin.current_price * currency[1],
@@ -50,18 +50,18 @@ const CoinRow = ({ coin, isStarred, toggleWatchlist, toggleForm }) => {
             </td>
 
             {/* 24h Change */}
-            <td className={`px-6 py-4 font-medium ${color}`}>
+            <td className={`px-6 py-4 text-right tabular-nums font-medium ${color}`}>
                 {coin.price_change_percentage_24h != null
                     ? `${coin.price_change_percentage_24h.toFixed(2)}%`
                     : "N/A"}
             </td>
 
             {/* Market Cap */}
-            <td className="px-6 py-4 font-medium text-gray-800 dark:text-white">
+            <td className="px-6 py-4 text-right tabular-nums font-medium text-gray-800 dark:text-white">
                 {coin.market_cap != null
                     ? formatCurrency(
                           coin.market_cap * currency[1],
-                          2
+                          0
                       )
                     : "N/A"}
             </td>
