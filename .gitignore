@@ -1,6 +1,9 @@
 # Dependencies (root, Client, Server, qa-tests)
 node_modules/
 
+# Python bytecode (ml/train.py)
+__pycache__/
+
 # Environment variables / secrets
 .env
 .env.*
