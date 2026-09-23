@@ -284,7 +284,36 @@ app.get("/ml/:coin", (req, res) => {
 	return res.json(payload);
 });
 
-app.post("/ml/:coin/train", (req, res) => {
+// Training spawns ~25 s of Python per request, so this mutation sits behind
+// the same JWT as every other mutating route (BUG-06). Each authenticated
+// user also gets a sliding-window budget: TRAIN_RATE_LIMIT requests per
+// TRAIN_RATE_WINDOW_MS (enough to retrain the full 6-coin set twice), then
+// 429 + Retry-After.
+const TRAIN_RATE_LIMIT = 12;
+const TRAIN_RATE_WINDOW_MS = 10 * 60 * 1000;
+const trainHits = new Map();
+
+function trainRateLimiter(req, res, next) {
+	const key = String(req.user._id);
+	const now = Date.now();
+	const hits = (trainHits.get(key) || []).filter(
+		(timestamp) => now - timestamp < TRAIN_RATE_WINDOW_MS,
+	);
+	if (hits.length >= TRAIN_RATE_LIMIT) {
+		const retryAfterSec = Math.ceil(
+			(TRAIN_RATE_WINDOW_MS - (now - hits[0])) / 1000,
+		);
+		res.set("Retry-After", String(retryAfterSec));
+		return res.status(429).json({
+			error: "Too many training requests. Try again in a few minutes.",
+		});
+	}
+	hits.push(now);
+	trainHits.set(key, hits);
+	next();
+}
+
+app.post("/ml/:coin/train", passport.authenticate("jwt", { session: false }), trainRateLimiter, (req, res) => {
 	const coin = req.params.coin;
 
 	if (!ML_COINS.includes(coin)) {

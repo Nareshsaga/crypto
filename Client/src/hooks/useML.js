@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { API_URL } from "../constants/ml";
+import api from "../services/api";
 
 export function useMLIndex() {
 	const [state, setState] = useState({
@@ -79,10 +80,14 @@ export function useMLModel(coin) {
 }
 
 export async function trainCoin(coin) {
-	const res = await fetch(`${API_URL}/ml/${coin}/train`, { method: "POST" });
-	const body = await res.json().catch(() => null);
-	if (!res.ok) {
-		throw new Error(body?.error || `Training failed (${res.status})`);
+	// Shared axios instance: it attaches the Bearer token and, on 401, runs
+	// the session-expiry interceptor before the error reaches the caller.
+	try {
+		const response = await api.post(`/ml/${coin}/train`);
+		return response.data;
+	} catch (err) {
+		const body = err.response?.data;
+		const status = err.response?.status;
+		throw new Error(body?.error || `Training failed (${status ?? err.message})`);
 	}
-	return body;
 }

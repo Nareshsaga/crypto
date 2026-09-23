@@ -18,13 +18,14 @@
 | API (phase 1, direct HTTP vs :3000) | 18 | 18 | 0 |
 | UI functional (`auth.spec.ts`, `dashboard.spec.ts`) | 14 | 14 | 0 |
 | Defect regression (`dashboard-defects.spec.ts`, DEF-01…04) | 4 | 4 | 0 |
-| **Total** | **36** | **36** | **0** |
+| ML training gate (`ml-training.spec.ts`, BUG-06) | 6 | 6 | 0 |
+| **Total** | **42** | **42** | **0** |
 
-Final run: `18 passed in 14.6 s` (6 workers, **exit code 0**) — following the fix round (§2): all four DEF tests, authored to fail against the original build as defect evidence, now **pass** and stand as permanent regression tests.
+Final run: `24 passed in 18.7 s` (6 workers, **exit code 0**) — following the fix rounds (§2): all four DEF tests, authored to fail against the original build as defect evidence, plus the six BUG-06 gate tests, now **pass** and stand as permanent regression tests.
 
 ```powershell
 cd qa-tests
-npm test                          # → 18/18 green (auto-starts Vite/Express if down)
+npm test                          # → 24/24 green (auto-starts Vite/Express if down)
 npx playwright test e2e/tests/dashboard-defects.spec.ts   # → 4/4 DEF regressions
 ```
 
@@ -58,10 +59,11 @@ register ✓ · duplicate register → 400 ✓ · login ✓ · wrong password �
 Severity: **High / Medium / Low**. Every defect has a runnable test:
 `npx playwright test e2e/tests/dashboard-defects.spec.ts -g "DEF-0X"`.
 
-> **Status 2026-09-23 — fix round:** BUG-01…05 and BUG-07 are **FIXED** in the app and
+> **Status 2026-09-23 — fix rounds complete:** BUG-01…05 and BUG-07 are **FIXED** in the app and
 > the corresponding DEF tests now **pass** (they were written to fail against the original
-> build; they now lock the corrected behavior in as regressions). **BUG-06 remains OPEN**
-> — it needs an owner decision (see its entry). Applied changes: §2.8.
+> build; they now lock the corrected behavior in as regressions). **BUG-06 is FIXED too**
+> (owner go-ahead received): JWT + rate limit on the train endpoint, session-gated retrain UI,
+> locked in by `ml-training.spec.ts`. Applied changes: §2.8.
 
 ### DEF-01 · BUG-01 — Client never validates the session; no 401 handling — **High**
 - **Evidence:** `DEF-01` test seeds `token = "garbage.token.value"` → app still renders `/dashboard` instead of redirecting to `/login` (test fails = defect present).
@@ -125,7 +127,15 @@ Repro (manual): load `/dashboard`, press Tab from the address bar — none of th
   upgraded to role/name (`getByRole('button', …)`), so keyboard operability is what the
   tests now click through.
 
-### BUG-06 — Unauthenticated ML training endpoint (resource abuse) — **Medium** · *QUESTION: intended?*
+### BUG-06 — Unauthenticated ML training endpoint (resource abuse) — **Medium**
+- **Status: FIXED** (owner decision: not intended — gate it). `POST /ml/:coin/train` now runs
+  `passport.authenticate("jwt", { session: false })` + a per-user sliding-window rate limit
+  (12 requests / 10 min → `429` + `Retry-After`, keyed on `req.user._id`); `trainCoin` moved
+  onto the shared axios instance (auto Bearer header + the BUG-01 401 interceptor); the public
+  `/predictions` page gates its retrain button on the session — anonymous visitors get a
+  disabled **“Log in to retrain”** affordance. Reading models stays public, as designed.
+  Regression: `ml-training.spec.ts` — 6 tests (401 anon / 401 garbage token, gate-then-allowlist
+  404, 429 budget + `Retry-After`, 2 UI gating) — **all pass**.
 - `Server/server.js` ML section: `POST /ml/:coin/train` has **no auth middleware** (every other mutating route requires Bearer JWT) and spawns `python ml/train.py` (~25 s typical, 5-min watchdog).
 - The `/predictions` page is intentionally **public for reading models** (`App.jsx:245-246` comment), but it renders a **“Retrain this coin”** button (`Predictions.jsx:188` → `trainCoin`, `:108`) — so anonymous visitors can queue repeated expensive jobs (6-coin allowlist; concurrency guard only prevents *same-coin* overlap).
 - **Evidence, without triggering training** (safe: the coin-allowlist check runs before any `spawn`):
@@ -137,7 +147,7 @@ Repro (manual): load `/dashboard`, press Tab from the address bar — none of th
   # → HTTP 200 full model index (6 models, metrics, forecasts) — read-open by design,
   #   matching the "public page" comment; the mutation endpoint sharing that openness is the concern
   ```
-- **Ask:** confirm whether public *retraining* is a deliberate demo behavior; if not, require JWT + rate-limit.
+- *(Resolved — see **Status** above; the safe non-spawning probes below are how the gap was evidenced.)*
 
 ### BUG-07 — Shipped debug logging — **Low**
 `Dashboard.jsx:24` — `console.log("DASHBOARD IS RENDERING")` executes on every dashboard render.
@@ -160,8 +170,14 @@ Repro (manual): load `/dashboard`, press Tab from the address bar — none of th
 | `components/Searchbar.jsx` | search button `aria-label` (icon-only, same class as BUG-03) |
 | `qa-tests/e2e/tests/dashboard.spec.ts` | locators upgraded to the new accessible names (`getByLabel`, `getByRole('button', { name })`); zero-total oracle `$0` → `$0.00` to match the **committed** `formatCurrency` cents contract (user edit, `CurrencyContext.jsx` — not part of this fix round) |
 
-**Untouched by design:** `Server/` (BUG-06 awaits the owner's decision), the user's ML work
-(`Predictions`, `useML`, `components/ml/*`, `ml/`).
+| `Server/server.js` (S6, BUG-06) | `POST /ml/:coin/train` behind `passport.authenticate("jwt")` + per-user rate limiter (12 / 10 min → `429` + `Retry-After`, keyed on `req.user._id`) |
+| `hooks/useML.js` (S6) | `trainCoin`: bare `fetch` → shared axios `api` (auto Bearer header, 401 session-expiry interceptor) |
+| `pages/Predictions.jsx` (S6) | retrain button gated on `isAuthenticated` — anonymous sees disabled “Log in to retrain”; `handleTrain` early-returns when logged out (coexists with the user's Projection panel, commit `a7bcedb`) |
+| `qa-tests/e2e/tests/ml-training.spec.ts` | NEW — 6 BUG-06 regressions (4 API: gate/rate-limit, 2 UI: button gating); every API probe uses the unknown-coin path so no Python job can ever spawn during a run |
+
+**Untouched by design:** the user's ML pipeline/data (`ml/train.py`, `components/ml/*`,
+`ml-data/*` — their own commits `0690d85`/`a7bcedb`), except the two authorized BUG-06
+touchpoints above (`Predictions.jsx` button gate, `useML.js` transport).
 
 ### Corrections / non-defects (honest record)
 - **Withdrawn:** initial static pass flagged “mobile hamburger dead / Menu never mounted”. Post-restart re-read of `App.jsx:155-161` shows `menu`/`toggleMenu` **are** passed and `<Menu>` is rendered behind `AnimatePresence`; hamburger wired at `Header.jsx:145`. Not reproducible → **not a defect**.
@@ -193,6 +209,10 @@ Repro (manual): load `/dashboard`, press Tab from the address bar — none of th
 | S5 | BUG-01…07 | Fixes applied per §2.8 (app code only; Server/ML untouched). |
 | S5 | BUG (test) | First re-run: DEF-01…04 **all green** + 16/18 functional; two failures were the exact `$0` oracles — root-caused as a *contract drift*: the user's committed `formatCurrency` now renders cents (`$0.00`). Oracles aligned to the committed contract (substring oracles `$100`/`€90` were already format-agnostic). |
 | S5 | NOTE | Final: **18/18 UI green in 14.6 s, exit code 0** (DEF tests now regressions); API layer 18/18 from phase 1 → **36/36**. |
+| S6 | NOTE | Two mid-session re-runs flaked (5 then 3 fails, *different* tests each time; passing tests 3–5× slow) — root-caused to concurrent ML training batches (6 × Python ≈ 2.5 min) starving Vite/Express. Environmental, not defects: clean re-run at idle → 18/18 in 14.2 s. Operating rule: don't run the suite during training. |
+| S6 | BUG-06 | Owner go-ahead (“continue the changes”) → fix implemented: JWT gate + per-user rate limit on the train route; `trainCoin` on the shared axios instance; `/predictions` retrain button session-gated; 6 regression tests added. |
+| S6 | BUG (integration) | User's parallel commits interleaved with the fix round — `a1f284a` swept the suite + first fixes, `0690d85` fixed single-coin retraining wiping the index, `a7bcedb` added the Projection panel. Verified the `Predictions.jsx` gate survived intact inside `a7bcedb` (all 6 markers present). |
+| S6 | NOTE | Express restarted to load the gate (passport now answers `Unauthorized` where the old code returned 404). Final: **24/24 green in 18.7 s, exit code 0** → cumulative **42/42**. |
 
 ---
 
@@ -202,8 +222,8 @@ Repro (manual): load `/dashboard`, press Tab from the address bar — none of th
 2. **Visual regression** — no baselines yet; screenshots taken are evidence, not diffs (`visual-testing`).
 3. **Mobile viewport pass** — desktop-only automation; a 390 px charter should cover the hamburger → `Menu` flow (`mobile-testing` / exploratory charter).
 4. **`/watchlist` & `/signup` UI** — guarded/round-trip covered indirectly; no dedicated page specs yet.
-5. **`/predictions` + ML endpoints** — out of charter; only BUG-06 touched it; user-side `_verify.cjs` scripts exist in `qa-tests/` (external, untouched, not in `testDir`).
-6. **Performance/load** — unauthenticated training spawn makes abuse a perf+security concern (ties to BUG-06).
+5. **`/predictions` + ML endpoints** — was out of charter; BUG-06 now closed with `ml-training.spec.ts` (6 tests), but the page still lacks a full functional spec. User-side `_verify.cjs` scripts exist in `qa-tests/` (external, untouched, not in `testDir`).
+6. **Performance/load** — training is now authed + rate-limited (BUG-06); no load profile yet. **Open feature request:** arbitrary-coin predictions — the picker is limited to the 6 configured coins (`ml/train.py` `COINS` + the `ML_COINS` allowlist); needs pipeline + server + UI + tests.
 7. **Session-expiry UX matrix** — beyond DEF-01: mid-session expiry, concurrent logout in two tabs.
 
 ---
