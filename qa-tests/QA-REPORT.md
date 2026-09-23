@@ -189,7 +189,7 @@ Repro (manual): load `/dashboard`, press Tab from the address bar — none of th
 | S4 | BUG-06 | While bounding `/predictions` scope: unauthenticated `POST /ml/:coin/train` discovered (spawns Python). Verified with safe non-spawning request (`notacoin` → 404 past the auth point). Tagged QUESTION — confirm intent. |
 | S4 | BUG-05 | Keyboard reachability gap compiled from `onClick` inventory (theme/exports/tabs are divs). |
 | S4 | QUESTION | Is public *retraining* (BUG-06) intended, or only public *reading* of models? |
-| S5 | NOTE | Fix round begun: one-off axe probe (`qa-tests/_axe-probe.cjs`) dumped exact violation node targets — pinned the 10 contrast nodes (th ×7 on slate-100, profit chip, empty `td`, seeded row's red profit + green Add) instead of guessing. |
+| S5 | NOTE | Fix round begun: one-off axe probe (written to `qa-tests/_axe-probe.cjs`, since removed after pinning the targets) dumped exact violation node targets — pinned the 10 contrast nodes (th ×7 on slate-100, profit chip, empty `td`, seeded row's red profit + green Add) instead of guessing. |
 | S5 | BUG-01…07 | Fixes applied per §2.8 (app code only; Server/ML untouched). |
 | S5 | BUG (test) | First re-run: DEF-01…04 **all green** + 16/18 functional; two failures were the exact `$0` oracles — root-caused as a *contract drift*: the user's committed `formatCurrency` now renders cents (`$0.00`). Oracles aligned to the committed contract (substring oracles `$100`/`€90` were already format-agnostic). |
 | S5 | NOTE | Final: **18/18 UI green in 14.6 s, exit code 0** (DEF tests now regressions); API layer 18/18 from phase 1 → **36/36**. |
