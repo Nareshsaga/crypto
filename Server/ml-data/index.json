@@ -1,6 +1,78 @@
 {
-  "generatedAt": "2026-09-23T09:00:04Z",
+  "generatedAt": "2026-09-23T12:25:28Z",
   "coins": [
+    {
+      "coin": "cardano",
+      "name": "Cardano",
+      "symbol": "ADA",
+      "yahooSymbol": "ADA-USD",
+      "trainedAt": "2026-09-23T12:25:27Z",
+      "durationSec": 94.51,
+      "source": "Yahoo Finance",
+      "summary": {
+        "r2": 0.9864,
+        "returnR2": -0.1322,
+        "mape": 3.287,
+        "baselineMape": 3.026,
+        "mae": 0.0106,
+        "direction": 45.22,
+        "rows": 1777,
+        "start": "2021-11-11",
+        "end": "2026-09-22",
+        "featureCount": 32,
+        "trainedAt": "2026-09-23T12:25:27Z",
+        "durationSec": 94.51,
+        "weights": {
+          "xgboost": 0.5007,
+          "gradientBoosting": 0.4993
+        },
+        "cvFolds": 5,
+        "testRows": 356,
+        "beatsBaseline": {
+          "mape": false,
+          "returnR2": false
+        },
+        "forecast": 0.228772,
+        "forecastDate": "2026-10-07",
+        "lastClose": 0.25412601232528687
+      }
+    },
+    {
+      "coin": "ethereum",
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "yahooSymbol": "ETH-USD",
+      "trainedAt": "2026-09-23T10:09:52Z",
+      "durationSec": 68.47,
+      "source": "Yahoo Finance",
+      "summary": {
+        "r2": 0.982,
+        "returnR2": -0.1149,
+        "mape": 2.48,
+        "baselineMape": 2.313,
+        "mae": 62.7589,
+        "direction": 54.78,
+        "rows": 1777,
+        "start": "2021-11-11",
+        "end": "2026-09-22",
+        "featureCount": 32,
+        "trainedAt": "2026-09-23T10:09:52Z",
+        "durationSec": 68.47,
+        "weights": {
+          "xgboost": 0.5054,
+          "gradientBoosting": 0.4946
+        },
+        "cvFolds": 5,
+        "testRows": 356,
+        "beatsBaseline": {
+          "mape": false,
+          "returnR2": false
+        },
+        "forecast": 2550.913515,
+        "forecastDate": "2026-10-07",
+        "lastClose": 2752.632568359375
+      }
+    },
     {
       "coin": "bitcoin",
       "name": "Bitcoin",
@@ -38,29 +110,29 @@
       }
     },
     {
-      "coin": "ethereum",
-      "name": "Ethereum",
-      "symbol": "ETH",
-      "yahooSymbol": "ETH-USD",
-      "trainedAt": "2026-09-23T08:58:22Z",
-      "durationSec": 21.81,
+      "coin": "dogecoin",
+      "name": "Dogecoin",
+      "symbol": "DOGE",
+      "yahooSymbol": "DOGE-USD",
+      "trainedAt": "2026-09-23T09:00:04Z",
+      "durationSec": 25.56,
       "source": "Yahoo Finance",
       "summary": {
-        "r2": 0.9821,
-        "returnR2": -0.1267,
-        "mape": 2.482,
-        "baselineMape": 2.321,
-        "mae": 62.9234,
+        "r2": 0.9804,
+        "returnR2": -0.1168,
+        "mape": 2.891,
+        "baselineMape": 2.615,
+        "mae": 0.0035,
         "direction": 51.97,
         "rows": 1776,
         "start": "2021-11-11",
         "end": "2026-09-21",
         "featureCount": 32,
-        "trainedAt": "2026-09-23T08:58:22Z",
-        "durationSec": 21.81,
+        "trainedAt": "2026-09-23T09:00:04Z",
+        "durationSec": 25.56,
         "weights": {
-          "xgboost": 0.5034,
-          "gradientBoosting": 0.4966
+          "xgboost": 0.5025,
+          "gradientBoosting": 0.4975
         },
         "cvFolds": 5,
         "testRows": 356,
@@ -68,45 +140,9 @@
           "mape": false,
           "returnR2": false
         },
-        "forecast": 2656.870622,
+        "forecast": 0.124412,
         "forecastDate": "2026-10-07",
-        "lastClose": 2776.46826171875
-      }
-    },
-    {
-      "coin": "solana",
-      "name": "Solana",
-      "symbol": "SOL",
-      "yahooSymbol": "SOL-USD",
-      "trainedAt": "2026-09-23T08:58:44Z",
-      "durationSec": 21.47,
-      "source": "Yahoo Finance",
-      "summary": {
-        "r2": 0.9833,
-        "returnR2": -0.2488,
-        "mape": 2.969,
-        "baselineMape": 2.613,
-        "mae": 3.2755,
-        "direction": 46.35,
-        "rows": 1776,
-        "start": "2021-11-11",
-        "end": "2026-09-21",
-        "featureCount": 32,
-        "trainedAt": "2026-09-23T08:58:44Z",
-        "durationSec": 21.47,
-        "weights": {
-          "xgboost": 0.4954,
-          "gradientBoosting": 0.5046
-        },
-        "cvFolds": 5,
-        "testRows": 356,
-        "beatsBaseline": {
-          "mape": false,
-          "returnR2": false
-        },
-        "forecast": 130.335091,
-        "forecastDate": "2026-10-07",
-        "lastClose": 118.75012969970703
+        "lastClose": 0.09962199628353119
       }
     },
     {
@@ -146,29 +182,29 @@
       }
     },
     {
-      "coin": "cardano",
-      "name": "Cardano",
-      "symbol": "ADA",
-      "yahooSymbol": "ADA-USD",
-      "trainedAt": "2026-09-23T08:59:38Z",
-      "durationSec": 25.87,
+      "coin": "solana",
+      "name": "Solana",
+      "symbol": "SOL",
+      "yahooSymbol": "SOL-USD",
+      "trainedAt": "2026-09-23T08:58:44Z",
+      "durationSec": 21.47,
       "source": "Yahoo Finance",
       "summary": {
-        "r2": 0.9867,
-        "returnR2": -0.1409,
-        "mape": 3.278,
-        "baselineMape": 3.027,
-        "mae": 0.0106,
-        "direction": 45.79,
+        "r2": 0.9833,
+        "returnR2": -0.2488,
+        "mape": 2.969,
+        "baselineMape": 2.613,
+        "mae": 3.2755,
+        "direction": 46.35,
         "rows": 1776,
         "start": "2021-11-11",
         "end": "2026-09-21",
         "featureCount": 32,
-        "trainedAt": "2026-09-23T08:59:38Z",
-        "durationSec": 25.87,
+        "trainedAt": "2026-09-23T08:58:44Z",
+        "durationSec": 21.47,
         "weights": {
-          "xgboost": 0.504,
-          "gradientBoosting": 0.496
+          "xgboost": 0.4954,
+          "gradientBoosting": 0.5046
         },
         "cvFolds": 5,
         "testRows": 356,
@@ -176,45 +212,9 @@
           "mape": false,
           "returnR2": false
         },
-        "forecast": 0.246965,
+        "forecast": 130.335091,
         "forecastDate": "2026-10-07",
-        "lastClose": 0.2448119968175888
-      }
-    },
-    {
-      "coin": "dogecoin",
-      "name": "Dogecoin",
-      "symbol": "DOGE",
-      "yahooSymbol": "DOGE-USD",
-      "trainedAt": "2026-09-23T09:00:04Z",
-      "durationSec": 25.56,
-      "source": "Yahoo Finance",
-      "summary": {
-        "r2": 0.9804,
-        "returnR2": -0.1168,
-        "mape": 2.891,
-        "baselineMape": 2.615,
-        "mae": 0.0035,
-        "direction": 51.97,
-        "rows": 1776,
-        "start": "2021-11-11",
-        "end": "2026-09-21",
-        "featureCount": 32,
-        "trainedAt": "2026-09-23T09:00:04Z",
-        "durationSec": 25.56,
-        "weights": {
-          "xgboost": 0.5025,
-          "gradientBoosting": 0.4975
-        },
-        "cvFolds": 5,
-        "testRows": 356,
-        "beatsBaseline": {
-          "mape": false,
-          "returnR2": false
-        },
-        "forecast": 0.124412,
-        "forecastDate": "2026-10-07",
-        "lastClose": 0.09962199628353119
+        "lastClose": 118.75012969970703
       }
     }
   ]

@@ -756,34 +756,69 @@ def write_payload(payload: dict) -> None:
     print(f"  wrote {target.relative_to(ROOT)} ({target.stat().st_size / 1024:.0f} KB)")
 
 
+def _slim(payload: dict) -> dict:
+    """Reduce a full payload to what the index needs in order to list a coin."""
+    return {
+        "coin": payload["coin"],
+        "name": payload["name"],
+        "symbol": payload["symbol"],
+        "yahooSymbol": payload["yahooSymbol"],
+        "trainedAt": payload["trainedAt"],
+        "durationSec": payload["durationSec"],
+        "source": payload["source"]["provider"],
+        "summary": payload["summary"],
+    }
+
+
 def write_index(payloads: list[dict]) -> None:
-    """Write a slim index. The full payloads live in their own coin files;
-    duplicating them here would multiply the response size by the coin count."""
+    """Write a slim index covering every coin on disk.
+
+    The full payloads live in their own coin files; duplicating them here
+    would multiply the response size by the coin count. Coin files already
+    present are merged in, so retraining a single coin refreshes that coin
+    instead of dropping every coin this run did not touch. Pass an empty
+    list (--reindex) to rebuild the index without training anything.
+    """
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    slim = [
-        {
-            "coin": p["coin"],
-            "name": p["name"],
-            "symbol": p["symbol"],
-            "yahooSymbol": p["yahooSymbol"],
-            "trainedAt": p["trainedAt"],
-            "durationSec": p["durationSec"],
-            "source": p["source"]["provider"],
-            "summary": p["summary"],
-        }
-        for p in payloads
-    ]
+
+    merged: dict[str, dict] = {}
+    for path in sorted(OUT_DIR.glob("*.json")):
+        if path.name == "index.json":
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            print(f"  skipping unreadable {path.name}: {exc}", file=sys.stderr)
+            continue
+        coin_id = payload.get("coin")
+        if coin_id:
+            merged[coin_id] = payload
+
+    # This run's payloads win over whatever is already on disk.
+    for payload in payloads:
+        merged[payload["coin"]] = payload
+
     index = {
         "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "coins": sorted(slim, key=lambda e: e["summary"]["rows"], reverse=True),
+        "coins": sorted(
+            (_slim(payload) for payload in merged.values()),
+            key=lambda entry: entry["summary"]["rows"],
+            reverse=True,
+        ),
     }
     target = OUT_DIR / "index.json"
     target.write_text(json.dumps(index, indent=2), encoding="utf-8")
-    print(f"  wrote {target.relative_to(ROOT)}")
+    print(f"  wrote {target.relative_to(ROOT)} ({len(index['coins'])} coins)")
 
 
 def main(argv: list[str]) -> int:
     requested = argv[1:] or list(COINS)
+
+    if requested == ["--reindex"]:
+        print("Rebuilding index from the coin files on disk ...", flush=True)
+        write_index([])
+        return 0
+
     unknown = [coin for coin in requested if coin not in COINS]
     if unknown:
         print(f"Unknown coin(s): {', '.join(unknown)}", file=sys.stderr)
@@ -812,9 +847,9 @@ def main(argv: list[str]) -> int:
             flush=True,
         )
 
-    if entries:
-        combined = [next(e for e in entries if e["coin"] == entry["coin"]) for entry in entries]
-        write_index(combined)
+    # Always reindex: entries is merged with the coin files already on disk,
+    # so a partial run updates its coins and leaves the rest listed.
+    write_index(entries)
 
     if failures:
         print(f"\n{len(failures)} coin(s) failed:", file=sys.stderr)
