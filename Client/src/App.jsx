@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence } from "motion/react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import Header from "./components/Header";
+import Menu from "./components/Menu";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Watchlist from "./pages/Watchlist";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import Predictions from "./pages/Predictions";
 
 import { useAuth } from "./context/AuthContext";
 
@@ -24,6 +27,18 @@ function App() {
     const [portfolio, setPortfolio] = useState({});
     const [form, setForm] = useState(false);
     const [coinData, setCoinData] = useState({});
+    const [menu, setMenu] = useState(false);
+
+    const location = useLocation();
+
+    // The drawer should never outlive the navigation that opened it.
+    useEffect(() => {
+        setMenu(false);
+    }, [location.pathname]);
+
+    function toggleMenu() {
+        setMenu((value) => !value);
+    }
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -135,9 +150,16 @@ function App() {
         <>
             <ToastContainer />
 
-            {isAuthenticated && (
-                <Header handleLogout={handleLogout} />
-            )}
+            {/* The predictions page is public, so the header renders either way:
+                without it a signed-out visitor on / has no way to reach login. */}
+            <Header
+                menu={menu}
+                toggleMenu={toggleMenu}
+                handleLogout={handleLogout}
+            />
+            <AnimatePresence>
+                {menu && <Menu handleLogout={handleLogout} />}
+            </AnimatePresence>
 
             <Routes>
 
@@ -219,6 +241,9 @@ function App() {
                         )
                     }
                 />
+
+                {/* PREDICTIONS (public: no account needed to read a model) */}
+                <Route path="/predictions" element={<Predictions />} />
 
             </Routes>
         </>

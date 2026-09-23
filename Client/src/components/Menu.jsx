@@ -11,7 +11,7 @@ const Menu = ({ handleLogout }) => {
 			animate={{ y: 0, opacity: 1 }}
 			exit={{ y: "-100%", opacity: 0.5 }}
 			transition={{ duration: 0.3, ease: "easeInOut" }}
-			className="fixed bg-white w-screen shadow-md border-t sm:hidden flex-col text-center flex z-20 dark:bg-gray-800"
+			className="fixed left-0 w-full bg-white shadow-md border-t sm:hidden flex-col text-center flex z-20 dark:bg-gray-800"
 		>
 			<NavLink
 				to="/"
@@ -25,10 +25,22 @@ const Menu = ({ handleLogout }) => {
 			>
 				Home
 			</NavLink>
+			<NavLink
+				to="/predictions"
+				className={({ isActive }) =>
+					`p-2 w-full font-medium ${
+						isActive
+							? "bg-blue-200 text-blue-700 dark:bg-blue-800/50 dark:text-white"
+							: "hover:bg-blue-50 text-gray-700 dark:hover:bg-blue-600/10 dark:text-white"
+					}`
+				}
+			>
+				Predictions
+			</NavLink>
 			{isAuthenticated ? (
 				<>
 					<NavLink
-						to="dashboard"
+						to="/dashboard"
 						className={({ isActive }) =>
 							`p-2 w-full font-medium ${
 								isActive
@@ -40,7 +52,7 @@ const Menu = ({ handleLogout }) => {
 						Dashboard
 					</NavLink>
 					<NavLink
-						to="watchlist"
+						to="/watchlist"
 						className={({ isActive }) =>
 							`p-2 w-full font-medium ${
 								isActive
@@ -61,7 +73,7 @@ const Menu = ({ handleLogout }) => {
 			) : (
 				<>
 					<NavLink
-						to="login"
+						to="/login"
 						className={({ isActive }) =>
 							`p-2 w-full font-medium ${
 								isActive
@@ -73,7 +85,7 @@ const Menu = ({ handleLogout }) => {
 						Login
 					</NavLink>
 					<NavLink
-						to="signup"
+						to="/signup"
 						className={({ isActive }) =>
 							`p-2 w-full text-white font-medium ${
 								isActive

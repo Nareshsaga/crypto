@@ -1,3 +1,40 @@
 @import "tailwindcss";
 
 @variant dark (.dark &);
+
+/*
+ * Type system
+ * Outfit (variable) carries every word; Geist Mono (variable) carries every
+ * figure. Numbers on this site are money, so they are monospaced by default
+ * and align in columns without extra work.
+ */
+@theme {
+	--font-sans: "Outfit Variable", ui-sans-serif, system-ui, -apple-system,
+		"Segoe UI", sans-serif;
+	--font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo,
+		monospace;
+}
+
+@layer base {
+	body {
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/* Headlines carry the hierarchy through weight and tracking, not size. */
+	h1,
+	h2,
+	h3 {
+		letter-spacing: -0.02em;
+	}
+}
+
+/* One radius system for the whole site: 8px controls, 12px surfaces. */
+@utility surface {
+	border-radius: 12px;
+}
+
+@utility control {
+	border-radius: 8px;
+}

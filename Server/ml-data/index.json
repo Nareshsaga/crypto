@@ -1,0 +1,221 @@
+{
+  "generatedAt": "2026-09-23T09:00:04Z",
+  "coins": [
+    {
+      "coin": "bitcoin",
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "yahooSymbol": "BTC-USD",
+      "trainedAt": "2026-09-23T08:58:00Z",
+      "durationSec": 22.23,
+      "source": "Yahoo Finance",
+      "summary": {
+        "r2": 0.9821,
+        "returnR2": -0.1622,
+        "mape": 1.812,
+        "baselineMape": 1.669,
+        "mae": 1434.7067,
+        "direction": 50.56,
+        "rows": 1776,
+        "start": "2021-11-11",
+        "end": "2026-09-21",
+        "featureCount": 32,
+        "trainedAt": "2026-09-23T08:58:00Z",
+        "durationSec": 22.23,
+        "weights": {
+          "xgboost": 0.5163,
+          "gradientBoosting": 0.4837
+        },
+        "cvFolds": 5,
+        "testRows": 356,
+        "beatsBaseline": {
+          "mape": false,
+          "returnR2": false
+        },
+        "forecast": 88727.086491,
+        "forecastDate": "2026-10-07",
+        "lastClose": 86602.9140625
+      }
+    },
+    {
+      "coin": "ethereum",
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "yahooSymbol": "ETH-USD",
+      "trainedAt": "2026-09-23T08:58:22Z",
+      "durationSec": 21.81,
+      "source": "Yahoo Finance",
+      "summary": {
+        "r2": 0.9821,
+        "returnR2": -0.1267,
+        "mape": 2.482,
+        "baselineMape": 2.321,
+        "mae": 62.9234,
+        "direction": 51.97,
+        "rows": 1776,
+        "start": "2021-11-11",
+        "end": "2026-09-21",
+        "featureCount": 32,
+        "trainedAt": "2026-09-23T08:58:22Z",
+        "durationSec": 21.81,
+        "weights": {
+          "xgboost": 0.5034,
+          "gradientBoosting": 0.4966
+        },
+        "cvFolds": 5,
+        "testRows": 356,
+        "beatsBaseline": {
+          "mape": false,
+          "returnR2": false
+        },
+        "forecast": 2656.870622,
+        "forecastDate": "2026-10-07",
+        "lastClose": 2776.46826171875
+      }
+    },
+    {
+      "coin": "solana",
+      "name": "Solana",
+      "symbol": "SOL",
+      "yahooSymbol": "SOL-USD",
+      "trainedAt": "2026-09-23T08:58:44Z",
+      "durationSec": 21.47,
+      "source": "Yahoo Finance",
+      "summary": {
+        "r2": 0.9833,
+        "returnR2": -0.2488,
+        "mape": 2.969,
+        "baselineMape": 2.613,
+        "mae": 3.2755,
+        "direction": 46.35,
+        "rows": 1776,
+        "start": "2021-11-11",
+        "end": "2026-09-21",
+        "featureCount": 32,
+        "trainedAt": "2026-09-23T08:58:44Z",
+        "durationSec": 21.47,
+        "weights": {
+          "xgboost": 0.4954,
+          "gradientBoosting": 0.5046
+        },
+        "cvFolds": 5,
+        "testRows": 356,
+        "beatsBaseline": {
+          "mape": false,
+          "returnR2": false
+        },
+        "forecast": 130.335091,
+        "forecastDate": "2026-10-07",
+        "lastClose": 118.75012969970703
+      }
+    },
+    {
+      "coin": "ripple",
+      "name": "XRP",
+      "symbol": "XRP",
+      "yahooSymbol": "XRP-USD",
+      "trainedAt": "2026-09-23T08:59:12Z",
+      "durationSec": 27.71,
+      "source": "Yahoo Finance",
+      "summary": {
+        "r2": 0.9806,
+        "returnR2": -0.1569,
+        "mape": 2.636,
+        "baselineMape": 2.372,
+        "mae": 0.0435,
+        "direction": 50.84,
+        "rows": 1776,
+        "start": "2021-11-11",
+        "end": "2026-09-21",
+        "featureCount": 32,
+        "trainedAt": "2026-09-23T08:59:12Z",
+        "durationSec": 27.71,
+        "weights": {
+          "xgboost": 0.5071,
+          "gradientBoosting": 0.4929
+        },
+        "cvFolds": 5,
+        "testRows": 356,
+        "beatsBaseline": {
+          "mape": false,
+          "returnR2": false
+        },
+        "forecast": 2.00509,
+        "forecastDate": "2026-10-07",
+        "lastClose": 1.5330430269241333
+      }
+    },
+    {
+      "coin": "cardano",
+      "name": "Cardano",
+      "symbol": "ADA",
+      "yahooSymbol": "ADA-USD",
+      "trainedAt": "2026-09-23T08:59:38Z",
+      "durationSec": 25.87,
+      "source": "Yahoo Finance",
+      "summary": {
+        "r2": 0.9867,
+        "returnR2": -0.1409,
+        "mape": 3.278,
+        "baselineMape": 3.027,
+        "mae": 0.0106,
+        "direction": 45.79,
+        "rows": 1776,
+        "start": "2021-11-11",
+        "end": "2026-09-21",
+        "featureCount": 32,
+        "trainedAt": "2026-09-23T08:59:38Z",
+        "durationSec": 25.87,
+        "weights": {
+          "xgboost": 0.504,
+          "gradientBoosting": 0.496
+        },
+        "cvFolds": 5,
+        "testRows": 356,
+        "beatsBaseline": {
+          "mape": false,
+          "returnR2": false
+        },
+        "forecast": 0.246965,
+        "forecastDate": "2026-10-07",
+        "lastClose": 0.2448119968175888
+      }
+    },
+    {
+      "coin": "dogecoin",
+      "name": "Dogecoin",
+      "symbol": "DOGE",
+      "yahooSymbol": "DOGE-USD",
+      "trainedAt": "2026-09-23T09:00:04Z",
+      "durationSec": 25.56,
+      "source": "Yahoo Finance",
+      "summary": {
+        "r2": 0.9804,
+        "returnR2": -0.1168,
+        "mape": 2.891,
+        "baselineMape": 2.615,
+        "mae": 0.0035,
+        "direction": 51.97,
+        "rows": 1776,
+        "start": "2021-11-11",
+        "end": "2026-09-21",
+        "featureCount": 32,
+        "trainedAt": "2026-09-23T09:00:04Z",
+        "durationSec": 25.56,
+        "weights": {
+          "xgboost": 0.5025,
+          "gradientBoosting": 0.4975
+        },
+        "cvFolds": 5,
+        "testRows": 356,
+        "beatsBaseline": {
+          "mape": false,
+          "returnR2": false
+        },
+        "forecast": 0.124412,
+        "forecastDate": "2026-10-07",
+        "lastClose": 0.09962199628353119
+      }
+    }
+  ]
+}

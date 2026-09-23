@@ -3,6 +3,9 @@ const cors = require("cors");
 const db = require("./db");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const path = require("path");
+const { spawn } = require("child_process");
 const User = require("./models/Users");
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -227,5 +230,110 @@ app.put(
 		}
 	}
 );
+
+const ML_DATA_DIR = path.join(__dirname, "ml-data");
+const ML_SCRIPT = path.join(__dirname, "..", "ml", "train.py");
+const ML_COINS = [
+	"bitcoin",
+	"ethereum",
+	"solana",
+	"ripple",
+	"cardano",
+	"dogecoin",
+];
+
+const training = new Set();
+
+function readMlData(file) {
+	const target = path.join(ML_DATA_DIR, file);
+	if (!fs.existsSync(target)) {
+		return null;
+	}
+	return JSON.parse(fs.readFileSync(target, "utf8"));
+}
+
+app.get("/ml", (req, res) => {
+	const index = readMlData("index.json");
+	if (!index) {
+		return res.status(404).json({
+			error: "No models trained yet",
+			hint: "Run `python ml/train.py` from the repository root.",
+		});
+	}
+	return res.json(index);
+});
+
+app.get("/ml/:coin", (req, res) => {
+	const coin = req.params.coin;
+
+	// Allowlist before touching the filesystem: no path traversal, no surprise files.
+	if (!ML_COINS.includes(coin)) {
+		return res.status(404).json({
+			error: `Unknown coin "${coin}"`,
+			available: ML_COINS,
+		});
+	}
+
+	const payload = readMlData(`${coin}.json`);
+	if (!payload) {
+		return res.status(404).json({
+			error: `No trained model for "${coin}"`,
+			hint: "Run `python ml/train.py` from the repository root.",
+		});
+	}
+	return res.json(payload);
+});
+
+app.post("/ml/:coin/train", (req, res) => {
+	const coin = req.params.coin;
+
+	if (!ML_COINS.includes(coin)) {
+		return res.status(404).json({
+			error: `Unknown coin "${coin}"`,
+			available: ML_COINS,
+		});
+	}
+	if (training.has(coin)) {
+		return res.status(409).json({ error: `${coin} is already training` });
+	}
+
+	training.add(coin);
+	const python = process.platform === "win32" ? "python" : "python3";
+	const child = spawn(python, [ML_SCRIPT, coin], {
+		cwd: path.join(__dirname, ".."),
+		windowsHide: true,
+	});
+
+	let stdout = "";
+	let stderr = "";
+	child.stdout.on("data", (chunk) => (stdout += chunk.toString()));
+	child.stderr.on("data", (chunk) => (stderr += chunk.toString()));
+
+	const watchdog = setTimeout(() => {
+		child.kill();
+	}, 300000);
+
+	child.on("close", (code) => {
+		clearTimeout(watchdog);
+		training.delete(coin);
+
+		if (code !== 0) {
+			return res.status(500).json({
+				error: `Training failed for ${coin}`,
+				detail: (stderr || stdout).slice(-2000),
+			});
+		}
+		return res.json({ coin, message: "Training complete", log: stdout });
+	});
+
+	child.on("error", (err) => {
+		clearTimeout(watchdog);
+		training.delete(coin);
+		return res.status(500).json({
+			error: "Could not start Python",
+			detail: err.message,
+		});
+	});
+});
 
 app.listen(PORT);
