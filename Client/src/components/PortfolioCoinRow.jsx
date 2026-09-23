@@ -38,7 +38,7 @@ const PortfolioCoinRow = ({
 						<p className="font-semibold text-gray-900 dark:text-white">
 							{coin.name}
 						</p>
-						<p className="text-gray-500 text-sm uppercase dark:text-gray-400">
+						<p className="text-gray-600 text-sm uppercase dark:text-gray-400">
 							{coin.symbol}
 						</p>
 					</div>
@@ -71,6 +71,12 @@ const PortfolioCoinRow = ({
 			<td className="px-6 py-4">
 				<div className="flex items-center gap-2">
 					<button
+						type="button"
+						aria-label={
+							isStarred
+								? `Remove ${coin.name} from watchlist`
+								: `Add ${coin.name} to watchlist`
+						}
 						className={`cursor-pointer ${
 							!isStarred
 								? "text-gray-400 hover:text-amber-300 transition-all duration-200"
@@ -83,7 +89,8 @@ const PortfolioCoinRow = ({
 						{isStarred ? <StarIcon /> : <StarOutlineIcon />}
 					</button>
 					<button
-						className="px-3 py-1 bg-green-600 text-white text-sm font-semibold rounded-md hover:bg-green-700 transition-all duration-200 cursor-pointer"
+						type="button"
+						className="px-3 py-1 bg-green-700 hover:bg-green-800 text-white text-sm font-semibold rounded-md transition-all duration-200 cursor-pointer"
 						onClick={() => {
 							toggleForm(coin, "add");
 						}}
@@ -91,7 +98,8 @@ const PortfolioCoinRow = ({
 						Add
 					</button>
 					<button
-						className="px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded-md hover:bg-red-700 transition-all duration-200 cursor-pointer"
+						type="button"
+						className="px-3 py-1 bg-red-700 hover:bg-red-800 text-white text-sm font-semibold rounded-md transition-all duration-200 cursor-pointer"
 						onClick={() => {
 							toggleForm(coin, "remove");
 						}}

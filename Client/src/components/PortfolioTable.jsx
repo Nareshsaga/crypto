@@ -29,7 +29,8 @@ const PortfolioTable = ({
                 </div>
 
                 <div className="flex items-center gap-4 pr-7">
-                    <div
+                    <button
+                        type="button"
                         className="border border-gray-700 py-1 sm:py-2 text-xs sm:text-sm cursor-pointer rounded-md font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 px-1 sm:px-4 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-950/5 transition-all duration-150"
                         onClick={() => {
                             downloadPDF(
@@ -44,9 +45,10 @@ const PortfolioTable = ({
                     >
                         <PictureAsPdfIcon />
                         <span className="ml-2">Export To PDF</span>
-                    </div>
+                    </button>
 
-                    <div
+                    <button
+                        type="button"
                         className="border border-gray-700 py-1 sm:py-2 text-xs sm:text-sm cursor-pointer rounded-md font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 px-1 sm:px-4 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-950/5 transition-all duration-150"
                         onClick={() => {
                             downloadCSV(coins, portfolio, currency);
@@ -54,7 +56,7 @@ const PortfolioTable = ({
                     >
                         <CodeIcon />
                         <span className="ml-2">Export To CSV</span>
-                    </div>
+                    </button>
                 </div>
             </div>
 
@@ -74,7 +76,7 @@ const PortfolioTable = ({
                             ].map((header) => (
                                 <th
                                     key={header.label}
-                                    className={`px-6 py-3 text-xs font-semibold text-gray-500 dark:text-gray-200 tracking-wider uppercase ${header.align}`}
+                                    className={`px-6 py-3 text-xs font-semibold text-gray-600 dark:text-gray-200 tracking-wider uppercase ${header.align}`}
                                 >
                                     {header.label}
                                 </th>
@@ -87,7 +89,7 @@ const PortfolioTable = ({
                             <tr>
                                 <td
                                     colSpan="8"
-                                    className="text-center p-8 text-gray-500 dark:text-white"
+                                    className="text-center p-8 text-gray-600 dark:text-white"
                                 >
                                     {message}
                                 </td>
@@ -98,7 +100,7 @@ const PortfolioTable = ({
                             <tr>
                                 <td
                                     colSpan="8"
-                                    className="text-center p-8 text-gray-500 dark:text-white"
+                                    className="text-center p-8 text-gray-600 dark:text-white"
                                 >
                                     Loading data...
                                 </td>
@@ -109,7 +111,7 @@ const PortfolioTable = ({
                             <tr>
                                 <td
                                     colSpan="8"
-                                    className="text-center p-8 text-red-500"
+                                    className="text-center p-8 text-red-700 dark:text-red-400"
                                 >
                                     An Error Occured
                                 </td>

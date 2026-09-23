@@ -79,6 +79,8 @@ const Form = ({
 					</h2>
 
 					<button
+						type="button"
+						aria-label="Close form"
 						className="text-gray-500 hover:text-red-500 cursor-pointer"
 						onClick={() => toggleForm()}
 					>
@@ -105,11 +107,15 @@ const Form = ({
 				</div>
 
 				<div className="mb-4">
-					<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+					<label
+						htmlFor="trade-price"
+						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+					>
 						{isSelling ? "Sell Price" : "Buy Price"}
 					</label>
 
 					<input
+						id="trade-price"
 						type="number"
 						step="any"
 						min="0"
@@ -120,11 +126,15 @@ const Form = ({
 				</div>
 
 				<div className="mb-4">
-					<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+					<label
+						htmlFor="trade-amount"
+						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+					>
 						Amount of Coins
 					</label>
 
 					<input
+						id="trade-amount"
 						type="number"
 						step="any"
 						min="0"
@@ -135,16 +145,17 @@ const Form = ({
 				</div>
 
 				{warning && (
-					<div className="text-red-500 text-sm mb-4">
+					<div className="text-red-700 dark:text-red-400 text-sm mb-4">
 						{warning}
 					</div>
 				)}
 
 				<button
+					type="button"
 					className={`w-full py-2 rounded-md text-white font-semibold cursor-pointer transition-all duration-200 ${
 						isSelling
-							? "bg-red-600 hover:bg-red-700"
-							: "bg-green-600 hover:bg-green-700"
+							? "bg-red-700 hover:bg-red-800"
+							: "bg-green-700 hover:bg-green-800"
 					}`}
 					onClick={handleSubmit}
 				>

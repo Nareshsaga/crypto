@@ -21,7 +21,6 @@ const Dashboard = ({
     removeCoin,
     coinData,
 }) => {
-    console.log("DASHBOARD IS RENDERING");
 
     const [action, setAction] = useState("add");
 
@@ -95,6 +94,9 @@ const Dashboard = ({
 
     return !form ? (
         <div className="bg-slate-100 min-h-screen w-full p-4 sm:p-6 lg:p-8 dark:bg-gray-900 dark:text-white">
+            <h1 className="max-w-9xl mx-auto mb-4 text-xl font-bold text-gray-900 dark:text-white">
+                Dashboard
+            </h1>
 
             {/* TOP CARDS */}
             <div className="max-w-9xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -114,8 +116,8 @@ const Dashboard = ({
                     <div
                         className={`flex items-center gap-2 font-semibold ${
                             profit < 0
-                                ? "text-red-600"
-                                : "text-green-600"
+                                ? "text-red-600 dark:text-red-400"
+                                : "text-green-700 dark:text-green-400"
                         }`}
                     >
                         {profit < 0 ? (
@@ -158,7 +160,7 @@ const Dashboard = ({
                                 <p>Loading Chart...</p>
                             </div>
                         ) : error ? (
-                            <div className="flex justify-center items-center h-full text-red-500">
+                            <div className="flex justify-center items-center h-full text-red-700 dark:text-red-400">
                                 <p>{error}</p>
                             </div>
                         ) : chart.length > 0 ? (
@@ -200,7 +202,7 @@ const Dashboard = ({
                             <p>Loading Chart...</p>
                         </div>
                     ) : error ? (
-                        <div className="flex justify-center items-center h-full text-red-500">
+                        <div className="flex justify-center items-center h-full text-red-700 dark:text-red-400">
                             <p>{error}</p>
                         </div>
                     ) : chart.length > 0 ? (

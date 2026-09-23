@@ -16,7 +16,9 @@ const Coin = ({ coin, profit }) => {
 			</div>
 			<div
 				className={`font-semibold ${
-					profit >= 0 ? "text-green-600" : "text-red-600"
+					profit >= 0
+						? "text-green-700 dark:text-green-400"
+						: "text-red-700 dark:text-red-400"
 				}`}
 			>
 				{profit >= 0 ? "+" : ""}

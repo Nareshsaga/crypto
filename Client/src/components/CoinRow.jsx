@@ -72,6 +72,12 @@ const CoinRow = ({ coin, isStarred, toggleWatchlist, toggleForm }) => {
 
                     {/* Watchlist */}
                     <button
+                        type="button"
+                        aria-label={
+                            isStarred
+                                ? `Remove ${coin.name} from watchlist`
+                                : `Add ${coin.name} to watchlist`
+                        }
                         className={`cursor-pointer ${
                             !isStarred
                                 ? "text-gray-400 hover:text-amber-300 transition-all duration-200"

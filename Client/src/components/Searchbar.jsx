@@ -16,6 +16,7 @@ export default function Searchbar({
 					onChange={(e) => setSearchValue(e.target.value)}
 				/>
 				<button
+					aria-label="Search"
 					className="rounded-full p-3 text-gray-500 transition-colors duration-200 hover:text-blue-600 focus:outline-none"
 					type="button"
 				>

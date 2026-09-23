@@ -10,7 +10,7 @@ const CurrencySelector = () => {
     }
 
     if (error) {
-        return <span className="text-sm text-red-500">Currency error</span>;
+        return <span className="text-sm text-red-700 dark:text-red-400">Currency error</span>;
     }
 
     const rates = currencyData?.rates || {};
@@ -27,6 +27,7 @@ const CurrencySelector = () => {
 
     return (
         <select
+            aria-label="Currency"
             value={currency[0]}
             onChange={handleChange}
             className="bg-white border border-gray-300 text-sm text-gray-600 font-semibold py-1.5 px-3 rounded-md shadow-sm cursor-pointer focus:outline-none"

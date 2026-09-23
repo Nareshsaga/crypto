@@ -44,8 +44,11 @@ const TopCoins = ({ coins, loading, error, portfolio }) => {
 
 	return (
 		<div className="bg-white shadow-lg rounded-xl pt-4 px-8 mt-8 dark:bg-gray-800">
-			<div className="flex border-b border-b-gray-200 dark:border-b-gray-600">
-				<div
+			<div className="flex border-b border-b-gray-200 dark:border-b-gray-600" role="tablist" aria-label="Portfolio performance">
+				<button
+					type="button"
+					role="tab"
+					aria-selected={option === "gainers"}
 					className={`p-4 cursor-pointer text-md font-semibold ${
 						option === "gainers"
 							? "border-b-2 border-b-blue-600 text-blue-600 dark:text-blue-400"
@@ -56,8 +59,11 @@ const TopCoins = ({ coins, loading, error, portfolio }) => {
 					}}
 				>
 					Top Gainers
-				</div>
-				<div
+				</button>
+				<button
+					type="button"
+					role="tab"
+					aria-selected={option === "losers"}
 					className={`p-4 cursor-pointer text-md font-semibold ${
 						option === "losers"
 							? "border-b-2 border-b-blue-600 text-blue-600 dark:text-blue-400"
@@ -68,7 +74,7 @@ const TopCoins = ({ coins, loading, error, portfolio }) => {
 					}}
 				>
 					Top Losers
-				</div>
+				</button>
 			</div>
 			<div className="mt-3 pb-4 overflow-y-scroll h-72 [scrollbar-width:none]">
 				{loading && (
@@ -77,7 +83,7 @@ const TopCoins = ({ coins, loading, error, portfolio }) => {
 					</div>
 				)}
 				{error && (
-					<div className="text-center p-4 text-red-500">
+					<div className="text-center p-4 text-red-700 dark:text-red-400">
 						Error fetching data.
 					</div>
 				)}

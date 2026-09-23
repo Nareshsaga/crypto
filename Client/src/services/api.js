@@ -17,6 +17,23 @@ api.interceptors.request.use((config) => {
 	return config;
 });
 
+// Session-expiry handling (BUG-01): a 401 means the token was rejected
+// server-side → clear the client session and re-authenticate instead of
+// silently rendering stale state around failing requests.
+api.interceptors.response.use(
+	(response) => response,
+	(error) => {
+		if (error.response?.status === 401 && localStorage.getItem("token")) {
+			localStorage.removeItem("token");
+			localStorage.removeItem("user");
+			if (window.location.pathname !== "/login") {
+				window.location.assign("/login");
+			}
+		}
+		return Promise.reject(error);
+	}
+);
+
 export const authAPI = {
 	login: async (username, password) => {
 		const response = await api.post("/login", { username, password });
