@@ -260,7 +260,7 @@ function App() {
                 />
 
                 {/* PREDICTIONS (public: no account needed to read a model) */}
-                <Route path="/predictions" element={<Predictions />} />
+                <Route path="/predictions" element={<Predictions portfolio={portfolio} />} />
 
             </Routes>
             </Suspense>

@@ -11,9 +11,11 @@ import CrossValidation from "../components/ml/CrossValidation";
 import FeatureImportance from "../components/ml/FeatureImportance";
 import TrainingConfig from "../components/ml/TrainingConfig";
 import ForecastChart from "../components/ml/ForecastChart";
+import Projection from "../components/ml/Projection";
 
 import { SURFACE, longDate, integer, pct, fix, MODEL_META } from "../constants/ml";
 import { trainCoin, useMLIndex, useMLModel } from "../hooks/useML";
+import { useAuth } from "../context/AuthContext";
 
 const Skeleton = ({ className = "" }) => (
 	<div
@@ -82,9 +84,10 @@ const Callout = ({ title, children, bare = false }) => (
 	</div>
 );
 
-const Predictions = () => {
+const Predictions = ({ portfolio }) => {
 	const reduce = useReducedMotion();
 	const { data: index, loading, error } = useMLIndex();
+	const { isAuthenticated } = useAuth();
 	const [coin, setCoin] = useState(null);
 	const [busy, setBusy] = useState(false);
 
@@ -102,7 +105,7 @@ const Predictions = () => {
 	const coins = useMemo(() => index?.coins || [], [index]);
 
 	const handleTrain = async () => {
-		if (!coin || busy) return;
+		if (!coin || busy || !isAuthenticated) return;
 		setBusy(true);
 		try {
 			await trainCoin(coin);
@@ -176,17 +179,27 @@ const Predictions = () => {
 
 					<div className="flex flex-col items-end gap-3">
 						<CoinPicker coins={coins} value={coin} onChange={setCoin} />
-						<button
-							onClick={handleTrain}
-							disabled={busy || !coin}
-							className={`control px-4 py-2 text-xs font-medium transition-colors duration-150 ${
-								busy
-									? "cursor-wait bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-									: "bg-gray-900 text-white hover:bg-blue-600 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-blue-500"
-							}`}
-						>
-							{busy ? "Retraining, about 25 seconds" : "Retrain this coin"}
-						</button>
+						{isAuthenticated ? (
+							<button
+								onClick={handleTrain}
+								disabled={busy || !coin}
+								className={`control px-4 py-2 text-xs font-medium transition-colors duration-150 ${
+									busy
+										? "cursor-wait bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+										: "bg-gray-900 text-white hover:bg-blue-600 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-blue-500"
+								}`}
+							>
+								{busy ? "Retraining, about 25 seconds" : "Retrain this coin"}
+							</button>
+						) : (
+							<button
+								disabled
+								title="Log in to retrain models"
+								className="control cursor-not-allowed px-4 py-2 text-xs font-medium bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+							>
+								Log in to retrain
+							</button>
+						)}
 					</div>
 				</motion.header>
 
@@ -284,6 +297,14 @@ const Predictions = () => {
 							description="Recursive multi-step projection seeded from the last close, with a band that widens as the horizon grows."
 						>
 							<ForecastChart model={model} />
+						</Section>
+
+						<Section
+							eyebrow="Projection"
+							title="From forecast to money"
+							description="Put a number on the forecast: any amount you choose, and your own holding projected against what you paid if you hold this coin."
+						>
+							<Projection model={model} portfolio={portfolio} />
 						</Section>
 
 						<Section title="Read this before acting on any of it">
