@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 
 export default function useChart(portfolio, coins) {
-	const portfolioCoins = Object.keys(portfolio);
 	const [chart, setChart] = useState([]);
 
 	useEffect(() => {
+		// Derived here rather than at component scope: as a render-scoped
+		// array it would be a new reference every render, which as an effect
+		// dependency would re-run the effect forever.
+		const portfolioCoins = Object.keys(portfolio);
+
 		if (coins.length > 0 && portfolioCoins.length > 0) {
 			const dataForChart = coins
 				.map((coin) => {

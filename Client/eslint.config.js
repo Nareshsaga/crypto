@@ -32,4 +32,14 @@ export default defineConfig([
 			"no-unused-vars": "warn",
 		},
 	},
+	{
+		// Context modules export a provider component alongside a consumer
+		// hook (useAuth, useCurrency) - the standard React pattern. The Fast
+		// Refresh rule only guards component-local state across hot reloads,
+		// so it doesn't apply to these files.
+		files: ["src/context/**/*.{js,jsx}"],
+		rules: {
+			"react-refresh/only-export-components": "off",
+		},
+	},
 ]);

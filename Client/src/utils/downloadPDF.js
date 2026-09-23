@@ -2,7 +2,6 @@ import { NotoSans } from "../constants/NotoSans-Regular.js";
 import { NotoSansBold } from "../constants/NotoSans-Bold.js";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useCurrency } from "../context/CurrencyContext.jsx";
 
 export default function downloadPDF(
 	coins,

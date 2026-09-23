@@ -6,7 +6,7 @@ export default function useWatchlist(watchlist) {
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
-		const searchCoins = async (query) => {
+		const searchCoins = async () => {
 			setLoading(true);
 			setError(null);
 

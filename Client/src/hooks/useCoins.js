@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 
 export default function useCoins(portfolio) {
-	const portfolioCoins = Object.keys(portfolio);
 	const [coins, setCoins] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
+		// Derived inside the effect so the dependency array can stay on
+		// `portfolio`: a render-scoped array is a new reference each render
+		// and would refetch on every render if listed as a dependency.
+		const portfolioCoins = Object.keys(portfolio);
+
 		const searchCoins = async () => {
 			setLoading(true);
 			setError(null);
