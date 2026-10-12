@@ -258,6 +258,55 @@ function readMlData(file) {
 	return JSON.parse(fs.readFileSync(target, "utf8"));
 }
 
+// Coin search proxy: the browser asks us, we ask CoinGecko. Search then
+// survives CORS quirks, ad-blockers and shared-IP rate limits that killed the
+// old direct-from-browser call, and repeat queries are answered from a short
+// in-memory cache instead of spending upstream quota.
+const SEARCH_CACHE = new Map();
+const SEARCH_TTL_MS = 10 * 60 * 1000;
+
+app.get("/search", async (req, res) => {
+	const query = String(req.query.query || "").trim();
+	if (query.length < 2) {
+		return res.json({ coins: [] });
+	}
+
+	const key = query.toLowerCase();
+	const cached = SEARCH_CACHE.get(key);
+	if (cached && Date.now() - cached.at < SEARCH_TTL_MS) {
+		return res.json({ coins: cached.coins });
+	}
+
+	try {
+		const upstream = await fetch(
+			`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(query)}`,
+			{
+				headers: { Accept: "application/json" },
+				signal: AbortSignal.timeout(15000),
+			},
+		);
+		if (!upstream.ok) {
+			return res
+				.status(502)
+				.json({ error: `Coin search failed upstream (${upstream.status})` });
+		}
+		const data = await upstream.json();
+		const coins = (data.coins || []).slice(0, 8).map((entry) => ({
+			id: entry.id,
+			name: entry.name,
+			symbol: entry.symbol,
+			market_cap_rank: entry.market_cap_rank ?? null,
+		}));
+		if (SEARCH_CACHE.size >= 200) SEARCH_CACHE.clear();
+		SEARCH_CACHE.set(key, { at: Date.now(), coins });
+		return res.json({ coins });
+	} catch (err) {
+		return res
+			.status(502)
+			.json({ error: `Coin search failed: ${err.message}` });
+	}
+});
+
 app.get("/ml", (req, res) => {
 	const index = readMlData("index.json");
 	if (!index) {

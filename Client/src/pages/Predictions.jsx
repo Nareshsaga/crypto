@@ -51,7 +51,7 @@ const CoinPicker = ({ coins, value, onChange }) => (
 	</div>
 );
 
-const CoinSearch = ({ query, onQueryChange, results, searching, onPick, trained }) => (
+const CoinSearch = ({ query, onQueryChange, results, searching, onPick, trained, error }) => (
 	<div className="relative w-72 max-w-full">
 		<input
 			type="search"
@@ -65,7 +65,15 @@ const CoinSearch = ({ query, onQueryChange, results, searching, onPick, trained 
 			<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Searching…</p>
 		)}
 		{!searching && query.trim().length >= 2 && results.length === 0 && (
-			<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">No matches</p>
+			<p
+				className={
+					error
+						? "mt-1 text-xs text-red-700 dark:text-red-400"
+						: "mt-1 text-xs text-gray-500 dark:text-gray-400"
+				}
+			>
+				{error || "No matches"}
+			</p>
 		)}
 		{results.length > 0 && (
 			<ul className="absolute z-30 mt-1 w-full overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
@@ -170,7 +178,7 @@ const Predictions = ({ portfolio }) => {
 	const [busy, setBusy] = useState(false);
 	const [query, setQuery] = useState("");
 	const [pending, setPending] = useState(null);
-	const { results, searching } = useCoinSearch(query);
+	const { results, searching, error: searchError } = useCoinSearch(query);
 
 	useEffect(() => {
 		if (!coin && index?.coins?.length) setCoin(index.coins[0].coin);
@@ -245,6 +253,7 @@ const Predictions = ({ portfolio }) => {
 				searching={searching}
 				onPick={handlePick}
 				trained={trainedIds}
+				error={searchError}
 			/>
 			{pending && (
 				<PendingStrip

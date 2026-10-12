@@ -99,18 +99,22 @@ export async function trainCoin(coin, meta) {
 	}
 }
 
-const COINGECKO_SEARCH = "https://api.coingecko.com/api/v3/search";
-
-/** Debounced CoinGecko search so any coin can be picked for prediction. */
+/**
+ * Debounced coin search, served by our own GET /search route (CoinGecko is
+ * the upstream there). Going through the API keeps the request same-origin,
+ * and failures come back as a visible error instead of a silent empty list.
+ */
 export function useCoinSearch(query) {
 	const [results, setResults] = useState([]);
 	const [searching, setSearching] = useState(false);
+	const [error, setError] = useState(null);
 
 	useEffect(() => {
 		const trimmed = (query || "").trim();
 		if (trimmed.length < 2) {
 			setResults([]);
 			setSearching(false);
+			setError(null);
 			return undefined;
 		}
 
@@ -119,13 +123,21 @@ export function useCoinSearch(query) {
 		const timer = setTimeout(async () => {
 			try {
 				const res = await fetch(
-					`${COINGECKO_SEARCH}?query=${encodeURIComponent(trimmed)}`,
+					`${API_URL}/search?query=${encodeURIComponent(trimmed)}`,
 				);
-				if (!res.ok) throw new Error(`Search failed (${res.status})`);
-				const data = await res.json();
-				if (!cancelled) setResults((data.coins || []).slice(0, 8));
-			} catch {
-				if (!cancelled) setResults([]);
+				const body = await res.json().catch(() => null);
+				if (!res.ok) {
+					throw new Error(body?.error || `Search failed (${res.status})`);
+				}
+				if (!cancelled) {
+					setResults(body.coins || []);
+					setError(null);
+				}
+			} catch (err) {
+				if (!cancelled) {
+					setResults([]);
+					setError(err.message || "Coin search is unavailable right now.");
+				}
 			} finally {
 				if (!cancelled) setSearching(false);
 			}
@@ -137,5 +149,5 @@ export function useCoinSearch(query) {
 		};
 	}, [query]);
 
-	return { results, searching };
+	return { results, searching, error };
 }
