@@ -178,6 +178,7 @@ const Predictions = ({ portfolio }) => {
 	const [busy, setBusy] = useState(false);
 	const [query, setQuery] = useState("");
 	const [pending, setPending] = useState(null);
+	const [trainError, setTrainError] = useState(null);
 	const { results, searching, error: searchError } = useCoinSearch(query);
 
 	useEffect(() => {
@@ -200,13 +201,16 @@ const Predictions = ({ portfolio }) => {
 	const handleTrain = async () => {
 		if (!coin || busy || !isAuthenticated) return;
 		setBusy(true);
+		setTrainError(null);
 		try {
 			await trainCoin(coin);
 			await reload();
 			reloadIndex();
 			toast.success(`Retrained ${coin} on 5 years of daily data.`);
 		} catch (err) {
-			toast.error(err.message || "Training failed.");
+			const message = err.message || "Training failed.";
+			setTrainError(message);
+			toast.error(message);
 		} finally {
 			setBusy(false);
 		}
@@ -230,6 +234,7 @@ const Predictions = ({ portfolio }) => {
 		if (!pending || busy || !isAuthenticated) return;
 		const { id, name, symbol } = pending;
 		setBusy(true);
+		setTrainError(null);
 		try {
 			await trainCoin(id, { ticker: `${symbol}-USD`, name });
 			setPending(null);
@@ -237,7 +242,9 @@ const Predictions = ({ portfolio }) => {
 			reloadIndex();
 			toast.success(`Trained ${name} on 5 years of daily data.`);
 		} catch (err) {
-			toast.error(err.message || "Training failed.");
+			const message = err.message || "Training failed.";
+			setTrainError(message);
+			toast.error(message);
 		} finally {
 			setBusy(false);
 		}
@@ -263,6 +270,14 @@ const Predictions = ({ portfolio }) => {
 					onTrain={handleTrainNew}
 					onDismiss={() => setPending(null)}
 				/>
+			)}
+			{trainError && (
+				<p
+					role="alert"
+					className="w-72 max-w-full border border-red-200 bg-red-50 px-3 py-2 text-xs leading-snug text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+				>
+					{trainError}
+				</p>
 			)}
 		</>
 	);
